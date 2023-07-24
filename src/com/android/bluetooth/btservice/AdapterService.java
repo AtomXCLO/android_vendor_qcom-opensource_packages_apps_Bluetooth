@@ -4396,15 +4396,6 @@ public class AdapterService extends Service {
             }
         }
 
-        @Override
-        public void onLeServiceUp(AttributionSource source, SynchronousResultReceiver receiver) {
-            try {
-                onLeServiceUp(source);
-                receiver.send(null);
-            } catch (RuntimeException e) {
-                receiver.propagateException(e);
-            }
-        }
         @VisibleForTesting
         void onLeServiceUp(AttributionSource source) {
             AdapterService service = getService();
@@ -4428,16 +4419,6 @@ public class AdapterService extends Service {
             service.updateQuietModeStatus(quietMode);
         }
 
-
-        @Override
-        public void onBrEdrDown(AttributionSource source, SynchronousResultReceiver receiver) {
-            try {
-                onBrEdrDown(source);
-                receiver.send(null);
-            } catch (RuntimeException e) {
-                receiver.propagateException(e);
-            }
-        }
         @VisibleForTesting
         void onBrEdrDown(AttributionSource source) {
             AdapterService service = getService();
@@ -4473,6 +4454,26 @@ public class AdapterService extends Service {
                 return -1;
             }
             return service.getSocketOpt(type, channel, optionName, optionVal);
+        }
+
+        // KEYSTONE(If203cd17078d789a51a2949a96438480f3289f59,b/292592142)
+        @Override
+        public void startBrEdr(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        // KEYSTONE(If203cd17078d789a51a2949a96438480f3289f59,b/292592142)
+        @Override
+        public void stopBle(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
         }
 
         @Override
