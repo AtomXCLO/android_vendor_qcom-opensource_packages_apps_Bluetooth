@@ -2373,8 +2373,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean isLogRedactionEnabled() {
-            return false;
+        public void isLogRedactionEnabled(SynchronousResultReceiver receiver) {
         }
 
         @Override
