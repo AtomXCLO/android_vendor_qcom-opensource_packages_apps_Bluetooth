@@ -148,6 +148,7 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothActivityEnergyInfoListener;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothConnectionCallback;
+import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothMetadataListener;
 import android.bluetooth.IBluetoothOobDataCallback;
 import android.bluetooth.IBluetoothPreferredAudioProfilesCallback;
@@ -432,6 +433,7 @@ public class AdapterService extends Service {
     private LeAudioService mLeAudioService;
     private HapClientService mHapClientService;
     private BassClientService mBassClientService;
+    private IBluetoothGatt mBluetoothGatt;
 
     ///*_REF
     Object mBCService = null;
@@ -4792,6 +4794,29 @@ public class AdapterService extends Service {
             return service.getOffloadedTransportDiscoveryDataScanSupported();
         }
 
+        @Override
+        public IBluetoothGatt getBluetoothGatt() {
+            AdapterService service = getService();
+            if (service == null) {
+                return null;
+            }
+            return service.getBluetoothGatt();
+        }
+
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+        @Override
+        public void unregAllGattClient(
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                AdapterService service = getService();
+                if (service != null) {
+                    service.unregAllGattClient(source);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
     };
 
     public boolean isEnabled() {
@@ -6600,6 +6625,20 @@ public class AdapterService extends Service {
      */
     public int getOffloadedTransportDiscoveryDataScanSupported() {
         return BluetoothStatusCodes.FEATURE_SUPPORTED;
+    }
+
+    IBluetoothGatt getBluetoothGatt() {
+        return mBluetoothGatt;
+    }
+
+    void unregAllGattClient(AttributionSource source) {
+        //if (mBluetoothGatt != null) {
+        //    try {
+        //        mBluetoothGatt.unregAll(source);
+        //    } catch (RemoteException e) {
+        //        Log.e(TAG, "Unable to disconnect all apps.", e);
+        //    }
+        //}
     }
 
     void updateQuietModeStatus(boolean quietMode) {
