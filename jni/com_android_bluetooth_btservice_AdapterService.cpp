@@ -74,7 +74,6 @@ static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
-static jmethodID method_setWakeAlarm;
 static jmethodID method_acquireWakeLock;
 static jmethodID method_releaseWakeLock;
 static jmethodID method_energyInfo;
@@ -729,12 +728,6 @@ static bt_callbacks_t sBluetoothCallbacks = {
     link_quality_report_callback,generate_local_oob_data_callback,
     switch_buffer_size_callback, switch_codec_callback, NULL};
 
-// The callback to call when the wake alarm fires.
-static alarm_cb sAlarmCallback;
-
-// The data to pass to the wake alarm callback.
-static void* sAlarmCallbackData;
-
 class JNIThreadAttacher {
  public:
   JNIThreadAttacher(JavaVM* vm) : vm_(vm), env_(nullptr) {
@@ -782,42 +775,6 @@ class JNIThreadAttacher {
 };
 
 #ifdef ENABLE_JAVA_WAKE_LOCKS
-static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake,
-                                   alarm_cb cb, void* data) {
-  std::shared_lock<std::shared_timed_mutex> lock(jniObjMutex);
-  if (!sJniAdapterServiceObj) {
-    ALOGE("%s, JNI obj is null. Failed to call JNI callback", __func__);
-    return false;
-  }
-
-  JNIThreadAttacher attacher(vm);
-  JNIEnv* env = attacher.getEnv();
-  jboolean ret = JNI_FALSE;
-
-  if (env == nullptr) {
-    ALOGE("%s: Unable to get JNI Env", __func__);
-    return false;
-  }
-
-  sAlarmCallback = cb;
-  sAlarmCallbackData = data;
-
-  jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
-  if (sJniAdapterServiceObj) {
-      ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm,
-                             (jlong)delay_millis, jshould_wake);
-  } else {
-       ALOGE("%s JNI ERROR : JNI reference already cleaned : set_wake_alarm_callout", __func__);
-  }
-
-  if (!ret) {
-    ALOGE("%s setWakeAlarm failed:ret= %d ", __func__, ret);
-    sAlarmCallback = NULL;
-    sAlarmCallbackData = NULL;
-  }
-
-  return (ret == JNI_TRUE);
-}
 
 static int acquire_wake_lock_callout(const char* lock_name) {
   std::shared_lock<std::shared_timed_mutex> lock(jniObjMutex);
@@ -889,18 +846,9 @@ static int release_wake_lock_callout(const char* lock_name) {
   return ret;
 }
 #endif
-// Called by Java code when alarm is fired. A wake lock is held by the caller
-// over the duration of this callback.
-static void alarmFiredNative(JNIEnv* env, jobject obj) {
-  if (sAlarmCallback) {
-    sAlarmCallback(sAlarmCallbackData);
-  } else {
-    ALOGE("%s() - Alarm fired with callback not set!", __func__);
-  }
-}
 #ifdef ENABLE_JAVA_WAKE_LOCKS
 static bt_os_callouts_t sBluetoothOsCallouts = {
-    sizeof(sBluetoothOsCallouts), set_wake_alarm_callout,
+    sizeof(sBluetoothOsCallouts), 
     acquire_wake_lock_callout, release_wake_lock_callout,
 };
 #endif
@@ -979,7 +927,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_aclStateChangeCallback =
       env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BIII)V");
 
-  method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
   method_acquireWakeLock =
       env->GetMethodID(clazz, "acquireWakeLock", "(Ljava/lang/String;)Z");
   method_releaseWakeLock =
@@ -1861,7 +1808,6 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
-    {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
      (void*)dumpNative},
