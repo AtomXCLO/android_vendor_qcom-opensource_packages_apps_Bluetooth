@@ -405,7 +405,7 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
                                  signal, battery, addr.get());
   }
 
-  void DebugDumpCallback(bool active, bool wbs, int total_num_decoded_frames,
+  void DebugDumpCallback(bool active, uint16_t codec_id, int total_num_decoded_frames,
                          double pkt_loss_ratio, uint64_t begin_ts,
                          uint64_t end_ts, const char* pkt_status_in_hex,
                          const char* pkt_status_in_binary) override {
