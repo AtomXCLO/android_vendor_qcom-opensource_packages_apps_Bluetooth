@@ -4821,7 +4821,15 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public IBluetoothGatt getBluetoothGatt() {
+        public void getBluetoothGatt(SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(getBluetoothGatt());
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        private IBinder getBluetoothGatt() {
             AdapterService service = getService();
             if (service == null) {
                 return null;
@@ -6674,8 +6682,11 @@ public class AdapterService extends Service {
         }
     }
 
-    IBluetoothGatt getBluetoothGatt() {
-        return mBluetoothGatt;
+    IBinder getBluetoothGatt() {
+        if (mGattService == null) {
+            return null;
+        }
+        return ((ProfileService) mGattService).getBinder();
     }
 
     void unregAllGattClient(AttributionSource source) {

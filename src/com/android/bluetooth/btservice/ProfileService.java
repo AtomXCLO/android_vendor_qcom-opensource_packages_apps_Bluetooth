@@ -18,6 +18,8 @@ package com.android.bluetooth.btservice;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Service;
@@ -218,6 +220,11 @@ public abstract class ProfileService extends Service {
             // initBinder returned null, you can't bind
             throw new UnsupportedOperationException("Cannot bind to " + mName);
         }
+        return mBinder;
+    }
+
+    IBinder getBinder() {
+        requireNonNull(mBinder, "Binder is null. onCreate need to be called first");
         return mBinder;
     }
 
