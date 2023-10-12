@@ -1754,7 +1754,8 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "connectionStateChanged as connecting for device " + device);
             CsipWrapper csipWrapper = CsipWrapper.getInstance();
             ParcelUuid uuid = null;
-            if (csipWrapper.checkIncludingServiceForDeviceGroup(device, CAP_UUID)) {
+            if (csipWrapper != null &&
+                csipWrapper.checkIncludingServiceForDeviceGroup(device, CAP_UUID)) {
                 uuid = CAP_UUID;
             }
             int groupId = csipWrapper.getRemoteDeviceGroupId(device, uuid);
@@ -2113,7 +2114,8 @@ public class LeAudioService extends ProfileService {
         }
         CsipWrapper csipWrapper = CsipWrapper.getInstance();
         ParcelUuid uuid = null;
-        if (csipWrapper.checkIncludingServiceForDeviceGroup(device, CAP_UUID)) {
+        if (csipWrapper != null &&
+            csipWrapper.checkIncludingServiceForDeviceGroup(device, CAP_UUID)) {
             uuid = CAP_UUID;
         }
         int setId = csipWrapper.getRemoteDeviceGroupId(device, uuid);
