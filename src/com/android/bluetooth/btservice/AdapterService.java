@@ -5044,6 +5044,11 @@ public class AdapterService extends Service {
                     new DiscoveringPackage(callingPackage, permission, hasDisavowedLocation));
         }
 
+        if (mAdapterProperties.isDiscovering()) {
+            Log.i(TAG,"discovery already active, ignore startDiscovery");
+            return false;
+        }
+
         return startDiscoveryNative();
     }
 
