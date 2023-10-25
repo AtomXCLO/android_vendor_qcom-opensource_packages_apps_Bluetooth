@@ -1065,6 +1065,17 @@ class PhonePolicy {
             return;
         }
         int hidHostConnectionPolicy = hidHostService.getConnectionPolicy(device);
+        int state = device.getBondState();
+
+        if (state == BluetoothDevice.BOND_NONE &&
+            hidHostConnectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            hidHostService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            debugLog("autoConnectHidHost: skipped auto-connect HID with device " + device
+                    + "bondState: " + state
+                    + "connectionPolicy setting to -1");
+            return;
+        }
+
         if (hidHostConnectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             debugLog("autoConnectHidHost: Connecting HID with " + device);
             hidHostService.connect(device);
