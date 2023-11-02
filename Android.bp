@@ -35,17 +35,6 @@ aosp_vs_qva_java_defaults {
     }
 }
 
-java_library {
-   name: "bluetooth_qti.change-ids",
-   srcs: [
-       "src/com/android/bluetooth/ChangeIds.java"
-   ],
-   libs: [
-       "app-compat-annotations",
-   ],
-   min_sdk_version: "Tiramisu",
-   sdk_version: "module_current",
-}
 
 // MAP API module
 
@@ -53,11 +42,6 @@ java_library {
     name: "bluetooth.mapsapi",
 
     srcs: ["lib/mapapi/**/*.java"],
-}
-
-platform_compat_config {
-    name: "bluetoothapk_qti-platform-compat-config",
-    src: ":bluetooth_qti.change-ids",
 }
 
 // Bluetooth APK
@@ -82,13 +66,11 @@ android_app {
     libs: [
         "telephony-common",
         "services.net",
-        "app-compat-annotations",
     ],
     static_libs: [
         "android.hardware.radio.sap-V1-java",
         "com.android.vcard",
         "com.android.obex",
-        "bluetooth_qti.change-ids",
         "bluetooth.mapsapi",
         "sap-api-java-static",
         "services.net",
@@ -111,10 +93,7 @@ android_app {
     optimize: {
         enabled: false,
     },
-    required: [
-        "libbluetooth",
-        "bluetoothapk_qti-platform-compat-config",
-    ],
+    required: ["libbluetooth"],
 
     proto: {
         type: "lite",
