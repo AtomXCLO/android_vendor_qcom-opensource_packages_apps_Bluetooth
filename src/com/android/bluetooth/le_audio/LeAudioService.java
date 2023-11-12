@@ -1200,6 +1200,9 @@ public class LeAudioService extends ProfileService {
         CallAudioIntf mCallAudio = CallAudioIntf.get();
         boolean isInCall =
                 mCallAudio != null && mCallAudio.isVoiceOrCallActive();
+        int adapterState = (mAdapterService != null) ? mAdapterService.getState()
+                : BluetoothAdapter.STATE_OFF;
+        Log.d(TAG, "setActiveDevice: "+ " adapterState: " + adapterState);
 
         ActiveDeviceManagerServiceIntf activeDeviceManager =
                                             ActiveDeviceManagerServiceIntf.get();
@@ -1207,7 +1210,7 @@ public class LeAudioService extends ProfileService {
                                           ApmConst.AudioProfiles.HAP_LE) ||
             ((ApmConst.AudioProfiles.BAP_CALL & VoiceProfID) ==
                                           ApmConst.AudioProfiles.BAP_CALL)) {
-            if (isInCall) {
+            if (isInCall && adapterState == BluetoothAdapter.STATE_ON) {
                 activeDeviceManager.setActiveDeviceBlocking(device,
                                                 ApmConstIntf.AudioFeatures.CALL_AUDIO);
             } else {
@@ -1220,7 +1223,7 @@ public class LeAudioService extends ProfileService {
                                          ApmConst.AudioProfiles.HAP_LE) ||
             ((ApmConst.AudioProfiles.BAP_MEDIA & MediaProfID) ==
                                          ApmConst.AudioProfiles.BAP_MEDIA)) {
-            if (isInCall) {
+            if (isInCall && adapterState == BluetoothAdapter.STATE_ON) {
                 activeDeviceManager.setActiveDeviceBlocking(device,
                                              ApmConstIntf.AudioFeatures.MEDIA_AUDIO);
             } else {
