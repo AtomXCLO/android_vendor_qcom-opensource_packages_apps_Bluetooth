@@ -18,7 +18,7 @@ LOCAL_JAVA_LIBRARIES := \
     robolectric_android-all-stub \
     Robolectric_all-target \
     mockito-robolectric-prebuilt \
-    truth-prebuilt
+    truth
 
 LOCAL_INSTRUMENTATION_FOR := Bluetooth
 
@@ -38,7 +38,7 @@ LOCAL_JAVA_LIBRARIES := \
     robolectric_android-all-stub \
     Robolectric_all-target \
     mockito-robolectric-prebuilt \
-    truth-prebuilt
+    truth
 
 LOCAL_TEST_PACKAGE := Bluetooth
 
