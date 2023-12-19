@@ -106,6 +106,12 @@ import com.android.bluetooth.apm.ActiveDeviceManagerServiceIntf;
 import com.android.modules.utils.SynchronousResultReceiver;
 import com.android.bluetooth.cc.CCService;
 import com.android.bluetooth.acm.AcmService;
+<<<<<<< HEAD   (19936d Merge "btservice: Setting mLeAudioActiveDevice Null" into bt)
+=======
+import com.android.bluetooth.apm.StreamAudioService;
+import com.android.bluetooth.btservice.ActiveDeviceManager;
+import com.android.bluetooth.le_audio.LeAudioService;
+>>>>>>> CHANGE (42f617 CC: Handling of In-band ringtone for CSIP devices(1/2).)
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2855,16 +2861,28 @@ public class HeadsetService extends ProfileService {
             int toState) {
         synchronized (mStateMachines) {
             List<BluetoothDevice> audioConnectableDevices =
-                                            getConnectedDevices();
-             CCService ccService = CCService.getCCService();
-             AcmService acmService = AcmService.getAcmService();
-			 List<BluetoothDevice> leaudioConnectableDevices = new ArrayList<>(0);
-             if (acmService != null)
-                leaudioConnectableDevices = acmService.getConnectedDevices();
+                                           getConnectedDevices();
+            CCService ccService = CCService.getCCService();
+            AcmService acmService = AcmService.getAcmService();
+                    LeAudioService leAudioService = LeAudioService.getLeAudioService();
+            List<BluetoothDevice> leaudioConnectedDevices = new ArrayList<>(0);
+            List<BluetoothDevice> leAudioGroupLeadDevices = new ArrayList<>(0);
+            if (acmService != null) {
+               leaudioConnectedDevices = acmService.getConnectedDevices();
+               Log.v(TAG, "onConnectionStateChanged: leAudioConnectedDevices = "
+                                                + leaudioConnectedDevices.size());
+            }
+
+            if (leAudioService != null) {
+                leAudioGroupLeadDevices = leAudioService.getConnectedGroupLeadDevices();
+                Log.v(TAG, "onConnectionStateChanged: leAudioGroupLeadDevices = "
+                                                     + leAudioGroupLeadDevices.size());
+            }
+
             if (fromState != BluetoothProfile.STATE_CONNECTED
                     && toState == BluetoothProfile.STATE_CONNECTED) {
                 if (ccService != null) {
-                  if ((leaudioConnectableDevices.size() >= 1) && ccService.isInbandRingingEnabled()) {
+                  if ((leAudioGroupLeadDevices.size() >= 1) && ccService.isInbandRingingEnabled()) {
                      Log.i(TAG,"Disable Inband Ringtone for CC if hf device also connected");
                      ccService.updateStatusFlags(0);
                   }
@@ -2885,7 +2903,7 @@ public class HeadsetService extends ProfileService {
                 if (audioConnectableDevices.size() <= 1 ) {
                     mInbandRingingRuntimeDisable = false;
                     if (ccService != null) {
-                      if (leaudioConnectableDevices.size() <= 1 && ccService.isInbandRingingEnabled()) {
+                      if (leAudioGroupLeadDevices.size() <= 1 && ccService.isInbandRingingEnabled()) {
                         Log.i(TAG,"enable Inband Ringtone for CC if hf device is disconnected");
                         ccService.updateStatusFlags(1);
                       }
