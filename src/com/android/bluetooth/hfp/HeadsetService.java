@@ -107,6 +107,8 @@ import com.android.modules.utils.SynchronousResultReceiver;
 import com.android.bluetooth.cc.CCService;
 import com.android.bluetooth.acm.AcmService;
 
+import com.android.bluetooth.btservice.ActiveDeviceManager;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -2689,6 +2691,15 @@ public class HeadsetService extends ProfileService {
                 Log.w(TAG, "mStateMachinesThread is null, returning");
                 return;
             }
+
+            if (isScoOrCallActive() &&
+                (((numActive + numHeld) == 0) &&
+                 (callState == HeadsetHalConstants.CALL_STATE_IDLE))) {
+                ActiveDeviceManager mDeviceManager =
+                    AdapterService.getAdapterService().getActiveDeviceManager();
+                mDeviceManager.triggerPendingA2dpActiveDevice();
+            }
+
             // Should stop all other audio mode in this case
             if ((numActive + numHeld) > 0 || callState != HeadsetHalConstants.CALL_STATE_IDLE) {
                 if (!isVirtualCall && mVirtualCallStarted) {
