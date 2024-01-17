@@ -104,6 +104,8 @@ import com.android.bluetooth.apm.CallAudioIntf;
 import com.android.bluetooth.apm.CallControlIntf;
 import com.android.bluetooth.apm.ActiveDeviceManagerServiceIntf;
 import com.android.modules.utils.SynchronousResultReceiver;
+import com.android.bluetooth.cc.CCService;
+import com.android.bluetooth.acm.AcmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2479,10 +2481,19 @@ public class HeadsetService extends ProfileService {
                             return false;
                         }
                     }
-                } else if (!stopScoUsingVirtualVoiceCall()) {
-                    Log.e(TAG, "dialOutgoingCall failed to stop current virtual call");
-                    return false;
-                }
+                } else {
+                    if (!stopScoUsingVirtualVoiceCall()) {
+                        Log.e(TAG, "dialOutgoingCall failed to stop current virtual call");
+                        return false;
+                    }
+                    HeadsetStateMachine stateMachine = mStateMachines.get(mActiveDevice);
+                    if (stateMachine != null &&
+                        stateMachine.isDeviceBlacklistedForDelayingCLCCRespAfterVOIPCall()) {
+                        // send delayed message for active device if Blacklisted
+                        stateMachine.sendMessageDelayed(
+                        HeadsetStateMachine.SEND_CLCC_RESP_AFTER_VOIP_CALL, 1000); 
+                    }
+               }
             }
             if (fromDevice == null) {
                 Log.e(TAG, "dialOutgoingCall, fromDevice is null");
@@ -2845,8 +2856,19 @@ public class HeadsetService extends ProfileService {
         synchronized (mStateMachines) {
             List<BluetoothDevice> audioConnectableDevices =
                                             getConnectedDevices();
+             CCService ccService = CCService.getCCService();
+             AcmService acmService = AcmService.getAcmService();
+			 List<BluetoothDevice> leaudioConnectableDevices = new ArrayList<>(0);
+             if (acmService != null)
+                leaudioConnectableDevices = acmService.getConnectedDevices();
             if (fromState != BluetoothProfile.STATE_CONNECTED
                     && toState == BluetoothProfile.STATE_CONNECTED) {
+                if (ccService != null) {
+                  if ((leaudioConnectableDevices.size() >= 1) && ccService.isInbandRingingEnabled()) {
+                     Log.i(TAG,"Disable Inband Ringtone for CC if hf device also connected");
+                     ccService.updateStatusFlags(0);
+                  }
+                }
                 boolean isInbandRingingSupported = getResources().getBoolean(
                         com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
                 if (audioConnectableDevices.size() > 1 && isInbandRingingSupported &&
@@ -2862,6 +2884,12 @@ public class HeadsetService extends ProfileService {
                     && toState == BluetoothProfile.STATE_DISCONNECTED) {
                 if (audioConnectableDevices.size() <= 1 ) {
                     mInbandRingingRuntimeDisable = false;
+                    if (ccService != null) {
+                      if (leaudioConnectableDevices.size() <= 1 && ccService.isInbandRingingEnabled()) {
+                        Log.i(TAG,"enable Inband Ringtone for CC if hf device is disconnected");
+                        ccService.updateStatusFlags(1);
+                      }
+                    }
                 }
                 if (device.equals(mActiveDevice)) {
                     AdapterService adapterService = AdapterService.getAdapterService();
