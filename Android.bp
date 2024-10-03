@@ -80,7 +80,6 @@ android_app {
         "androidx.room_room-runtime",
         "modules-utils-bytesmatcher",
         "modules-utils-handlerexecutor",
-        "modules-utils-synchronous-result-receiver",
     ],
 
     plugins: [
