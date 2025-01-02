@@ -61,6 +61,7 @@ android_app {
     platform_apis: true,
     certificate: "platform",
     aaptflags: [ "--custom-package", "com.android.bluetooth" ],
+    privapp_allowlist: ":privapp_allowlist_com.android.bluetooth.xml",
 
     jni_libs: ["libbluetooth_qti_jni"],
     libs: [
